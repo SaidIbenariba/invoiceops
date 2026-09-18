@@ -5,7 +5,7 @@
 
 ## Overview
 
-<!-- one paragraph: why this scan exists, what it covers -->
+Before finalizing scope and milestones for invoiceops (a portfolio project that maps heterogeneous supplier invoices to one schema, validates them, and routes by confidence — see `docs/lifecycle/01-scoping.md`), this survey checks what open-source and commercial invoice-processing solutions already do. It covers 15 tools across 4 tiers — OSS extraction libraries, cloud document-AI APIs, commercial AP/invoice SaaS, and AP automation platforms — each sourced from official docs and pricing pages, to ground scope decisions in the real landscape rather than assumptions.
 
 ## Feature Matrix
 
@@ -193,15 +193,22 @@ All 3 vendors share the same pattern: extraction + raw per-field confidence, zer
 
 ## Gap Analysis
 
-<!-- filled in Task 4 -->
+Extraction is table-stakes; validation is not. Every OSS library and cloud API surveyed does extraction with a per-field confidence signal (11/15 tools show `vision=Y`), but the **Validation** column is `N` for all 4 OSS libraries and all 3 cloud APIs (AWS Textract, Google Document AI, Azure AI Document Intelligence) — none of them checks arithmetic, cross-field consistency, or business rules on what they extract. That work is explicitly pushed downstream: AWS ships it as a separate paid product (Amazon A2I), Google as a separate product (HITL AI), and Azure's own docs tell integrators to "implement confidence-based validation" themselves.
+
+Confidence-based routing (auto-approve vs. human review) is present in only 3 of the 15 tools as a first-class, documented feature (`confidence-routing=Y`): Rossum and Mindee both gate on a per-field confidence threshold, and Coupa/Tipalti route on PO-match-tolerance or scan-legibility rules rather than a calibrated ML score. Critically, **none of the 15 tools publishes a calibration methodology** (an ECE or reliability-diagram equivalent) for its confidence scores — Rossum's "0.95 auto-pass, 0.60 review" thresholds and similar cutoffs elsewhere in the survey are vendor-chosen operating points, not statistically validated probabilities. invoiceops's pre-registered ECE ≤ 0.05 target (`01-scoping.md` H3) sits in a gap nothing surveyed fills.
+
+A second, narrower gap: Google's own published per-field confidence shows a real accuracy cliff between header fields (0.93–0.97) and line items (0.60–0.71) — external, independent evidence that line-item extraction is harder than header extraction, which is exactly the shape of invoiceops's H2 hypothesis (public benchmark scores don't transfer to multi-layout invoices) and worth citing directly when writing up Track B results. Separately, on the structured-mapping side (invoiceops's Track A, majority path), only invoice2data (`structured=Y`) and Coupa (`structured=Y`, but PO-match-driven, not schema-mapping) come close, and invoice2data does it via hand-written per-template regex, not learned mapping on unseen layouts — no surveyed tool demonstrates invoiceops's H1 claim (embeddings + constrained assignment beating fuzzy matching on unseen carrier templates).
 
 ## Prioritization
 
-<!-- filled in Task 4 -->
+- **Week 0 · Scoping** — keep as-is. The scan reinforces, rather than contradicts, the two pre-registered hypotheses that differentiate this project: H1 (semantic mapping on unseen templates — no surveyed tool does this) and H3 (calibrated confidence — zero of 15 tools publish an ECE-equivalent). No scope change needed.
+- **Week 0-1 · Data** — keep as-is. No surveyed tool offers a reusable, licensable synthetic carrier-invoice generator with adversarial distractors; the planned own-generator approach (`01-scoping.md` §7) remains the only path to a template-diversity test set.
+- **Week 1-3 · Modeling & evaluation** — adjust: raise relative priority of H3/H4 (calibration + routing) within the 3-week window. The matrix shows confidence-based routing is the single feature separating strong commercial products (Rossum, Mindee) from raw extraction APIs (AWS/Google/Azure) and most OSS tools — it's also the most demo-able, portfolio-relevant result. When writing up Track B (H2), cite Google Document AI's published 0.93–0.97 (header) vs. 0.60–0.71 (line-item) confidence gap as external corroboration, not just an internal finding.
+- **Week 4 · Deployment & monitoring** — keep scope (REST API, CI eval gate, tracing) and explicitly resist scope creep toward AP-platform features. All 4 AP-automation platforms surveyed (Bill.com, Ramp Bill Pay, Coupa, Tipalti) bundle payments and ERP sync as *core* product, not add-ons — confirming that `01-scoping.md` §3's exclusion of payments/ERP integration is correctly drawn, and there's no competitive pressure to add it under week-4 time pressure.
 
 ## Positioning Statement
 
-<!-- filled in Task 4 -->
+Across 15 invoice-processing tools surveyed — from open-source libraries to $250K/year enterprise AP suites — one gap shows up consistently: everyone extracts data and reports a confidence number, but almost nobody validates it. None of the 4 open-source tools or 3 major cloud document-AI APIs (AWS Textract, Google Document AI, Azure AI Document Intelligence) run any arithmetic or business-rule check on what they extract, and even the strongest commercial products that do route low-confidence fields to a human (Rossum, Mindee) don't publish how their confidence thresholds were calibrated — so a "0.95 confidence" score is a vendor's chosen cutoff, not a statistically grounded probability. invoiceops pre-registers a calibration target (expected calibration error ≤ 0.05) and validates it against held-out data before the system is allowed to auto-approve anything — the part of "trustworthy automation" most of the market skips.
 
 ## Sources
 
