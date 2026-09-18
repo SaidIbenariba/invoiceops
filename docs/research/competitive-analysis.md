@@ -9,7 +9,23 @@
 
 ## Feature Matrix
 
-<!-- one table, tools x axes, filled in Task 3 -->
+| Tool | Tier | Structured | Vision | Validation | Confidence routing | API | OSS | Pricing tier |
+|---|---|---|---|---|---|---|---|---|
+| invoice2data | OSS extraction lib | Y | N | N | N | N | Y | free |
+| Docling | OSS extraction lib | Partial | Y | N | N | Partial | Y | free |
+| Donut | OSS extraction lib | N | Y | N | N | N | Y | free |
+| PaddleOCR PP-Structure (KIE) | OSS extraction lib | Partial | Y | N | N | N | Y | free |
+| AWS Textract | Cloud document-AI API | Partial | Y | N | Partial | Y | N | low |
+| Google Document AI | Cloud document-AI API | Partial | Y | N | Partial | Y | N | low |
+| Azure AI Document Intelligence | Cloud document-AI API | Partial | Y | N | N | Y | N | low |
+| Rossum | Commercial AP/invoice SaaS | Partial | Y | Y | Y | Y | N | enterprise |
+| Nanonets | Commercial AP/invoice SaaS | Partial | Y | Y | Partial | Y | N | mid |
+| Mindee | Commercial AP/invoice SaaS | Partial | Y | Y | Y | Y | N | low |
+| Veryfi | Commercial AP/invoice SaaS | Partial | Y | N | Partial | Y | N | mid |
+| Bill.com | AP automation platform | Partial | Partial | Partial | N | Y | N | mid |
+| Ramp Bill Pay | AP automation platform | Partial | Partial | Partial | Partial | Y | N | mid |
+| Coupa | AP automation platform | Y | Partial | Y | Partial | Y | N | enterprise |
+| Tipalti | AP automation platform | Partial | Partial | Y | Partial | Y | N | mid |
 
 ## OSS Extraction Libraries
 
