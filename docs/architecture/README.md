@@ -4,8 +4,12 @@ Diagrams documenting invoiceops's system design. Status: week 0 — these descri
 
 ## Index
 
-- [System Architecture](system-architecture.md) — module-level component diagram: interface, processing, data/external layers.
+- [System Architecture](system-architecture.md) — module-level component diagram: interface, processing, observability, data/external layers, with the concrete tech stack per module.
 - [Pipeline & Data Flow](pipeline-data-flow.md) — Track A/B request flow, baselines (`01-scoping.md` §5), and current data-source status (`01-scoping.md` §7).
+- [Deployment Topology](deployment-topology.md) — local dev → GitHub Actions CI/CD → cloud runtime, and where tracing plugs in.
+- [ML / Data Lifecycle](ml-lifecycle.md) — data → fit/calibrate → eval gate → registry → serve → error analysis loop.
+
+Stack decisions behind every diagram are logged in `DECISIONS.md` (D004-D009).
 
 ## Conventions
 

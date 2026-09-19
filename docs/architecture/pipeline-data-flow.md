@@ -24,9 +24,9 @@ flowchart TD
     subgraph TA["Track A — majority path"]
         direction TB
         TA_START["XLSX / CSV invoice"] --> TA_HDR["Header recovery"]
-        TA_HDR --> TA_MAP["Semantic column mapping"]
+        TA_HDR --> TA_MAP["Semantic column mapping<br/>sentence-transformers embeddings +<br/>Hungarian algorithm (scipy)"]
         TA_MAP --> TA_OUT{"Canonical contract<br/>buildable?"}
-        TA_OUT -->|yes| TA_CONTRACT["Canonical contract<br/>(Pydantic)"]
+        TA_OUT -->|yes| TA_CONTRACT["Canonical contract<br/>(Pydantic v2)"]
         TA_OUT -->|no| TA_REFUSE["Explicit refusal"]
         TA_BASE["Baselines<br/>B0: exact alias dict<br/>B1: fuzzy string match"]
         TA_MAP -.compared against.-> TA_BASE
@@ -35,8 +35,8 @@ flowchart TD
 
     subgraph TB["Track B — minority path"]
         direction TB
-        TB_START["PDF / image invoice"] --> TB_KILE["Header fields<br/>(KILE, pretrained)"]
-        TB_START --> TB_LIR["Line items<br/>(LIR, pretrained)"]
+        TB_START["PDF / image invoice"] --> TB_KILE["Header fields (KILE)<br/>HF transformers, MPS<br/>LayoutLMv3 / Donut"]
+        TB_START --> TB_LIR["Line items (LIR)<br/>HF transformers, MPS<br/>LayoutLMv3 / Donut"]
         TB_BASE["Baseline<br/>B0: OCR text + regex rules"]
         TB_KILE -.compared against.-> TB_BASE
         TB_LIR -.compared against.-> TB_BASE
@@ -49,7 +49,7 @@ flowchart TD
     TB_KILE --> VALID
     TB_LIR --> VALID
 
-    VALID["Validation rules"] --> CONF["Calibrated confidence<br/>(ECE ≤ 0.05 target)"]
+    VALID["Validation rules<br/>Pydantic v2"] --> CONF["Calibrated confidence<br/>scikit-learn (Platt / isotonic)<br/>ECE ≤ 0.05 target"]
     CONF --> ROUTE{"Routing decision"}
     ROUTE -->|high confidence| APPROVE["auto_approve"]
     ROUTE -->|low confidence| REVIEW["human_review"]

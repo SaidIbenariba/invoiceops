@@ -5,22 +5,29 @@ Module-level component diagram. Maps directly to `src/invoiceops`'s 5 packages (
 ```mermaid
 flowchart TD
     subgraph IFACE["Interface layer"]
-        API["REST API<br/>invoice submission,<br/>request/response"]
+        API["REST API<br/>FastAPI + Uvicorn<br/>invoice submission,<br/>request/response"]
     end
 
     subgraph PROC["Processing layer"]
         direction TB
-        MAP["mapping<br/>Track A: header recovery +<br/>semantic column mapping"]
-        EXTRACT["extraction<br/>Track B: KILE header fields +<br/>LIR line items"]
-        VALID["validation<br/>net+tax=gross, line sums,<br/>currency sanity, variance&gt;5%"]
-        ROUTE["routing<br/>calibrated confidence to<br/>auto_approve / human_review / reject"]
+        MAP["mapping — Track A<br/>sentence-transformers embeddings +<br/>Hungarian algorithm<br/>(scipy.optimize.linear_sum_assignment)"]
+        EXTRACT["extraction — Track B<br/>HF transformers, MPS<br/>LayoutLMv3 / Donut<br/>KILE header fields + LIR line items"]
+        VALID["validation<br/>Pydantic v2 validators<br/>net+tax=gross, line sums,<br/>currency sanity, variance&gt;5%"]
+        ROUTE["routing<br/>scikit-learn calibration<br/>(Platt / isotonic) to<br/>auto_approve / human_review / reject"]
+    end
+
+    subgraph OBS["Observability &amp; tracking"]
+        direction TB
+        OTEL["OpenTelemetry<br/>system/request tracing<br/>vs. p95 latency targets"]
+        LANGFUSE["Langfuse<br/>LLM call tracing<br/>prompt / cost / latency"]
+        MLFLOW["MLflow (local)<br/>model + calibration<br/>version, metrics per run"]
     end
 
     subgraph DATAEXT["Data &amp; external"]
         direction TB
-        STORE["Storage<br/>synthetic + public datasets<br/>no private corpus"]
-        OLLAMA["Ollama<br/>local models<br/>CPU/MPS, Apple Silicon"]
-        CI["CI eval gate<br/>blocks regression<br/>DECISIONS.md D002"]
+        STORE["Storage<br/>SQLite (eval results) +<br/>filesystem (data/public, data/synthetic)<br/>no private corpus"]
+        OLLAMA["Ollama<br/>local LLM fallback<br/>CPU/MPS, Apple Silicon"]
+        CI["CI eval gate<br/>GitHub Actions + pytest<br/>blocks regression<br/>DECISIONS.md D002"]
     end
 
     API -->|structured file| MAP
@@ -39,6 +46,13 @@ flowchart TD
     CI -.tests.-> VALID
     CI -.tests.-> ROUTE
 
+    API -.traced by.-> OTEL
+    MAP -.LLM calls traced by.-> LANGFUSE
+    EXTRACT -.LLM calls traced by.-> LANGFUSE
+    MAP -.logged to.-> MLFLOW
+    EXTRACT -.logged to.-> MLFLOW
+    ROUTE -.logged to.-> MLFLOW
+
     style CI fill:#fff3cd,stroke:#c9a227,stroke-dasharray: 3 3
     style STORE fill:#d4edda,stroke:#2e7d32
     style OLLAMA fill:#d4edda,stroke:#2e7d32
@@ -46,6 +60,9 @@ flowchart TD
 
 ## Layers
 
-- **Interface** — the REST API (`src/invoiceops/api`). Receives an invoice, dispatches by file type, returns the routing decision.
-- **Processing** — the 4 packages doing the actual work: `mapping` (Track A), `extraction` (Track B), `validation` (shared, both tracks), `routing` (shared, final decision).
-- **Data & external** — not a package, but what processing depends on: local model inference (Ollama), the data available to train/test against (see [pipeline-data-flow.md](pipeline-data-flow.md) for why storage is green — public/synthetic only, no private corpus), and the CI evaluation gate that tests processing modules on every change.
+- **Interface** — the REST API (`src/invoiceops/api`), FastAPI + Uvicorn. Receives an invoice, dispatches by file type, returns the routing decision.
+- **Processing** — the 4 packages doing the actual work: `mapping` (Track A: embeddings + Hungarian-algorithm assignment), `extraction` (Track B: pretrained HF transformer models on MPS), `validation` (shared, Pydantic validators), `routing` (shared, scikit-learn-calibrated decision).
+- **Observability & tracking** — cross-cutting, not a package: OpenTelemetry for system-level request tracing, Langfuse specifically for the LLM/Ollama calls, MLflow for model/calibration versioning tied to every eval run (see `DECISIONS.md` D007-D008 for why these are split).
+- **Data & external** — local model inference (Ollama), the data available to train/test against (see [pipeline-data-flow.md](pipeline-data-flow.md) for why storage is green — public/synthetic only, no private corpus), and the CI evaluation gate that tests processing modules on every change.
+
+Stack rationale for every module here is logged in `DECISIONS.md` D004-D009.
