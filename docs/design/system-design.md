@@ -29,7 +29,7 @@
 ### 2.1 Data
 
 **Track A — synthetic generator** (Faker + openpyxl, seeded).
-- 15 carriers × 3 languages (EN/FR/ES) = **45 templates**, 20 invoices each = **900 files**.
+- 30 carriers × 3 languages (EN/FR/ES) = **90 templates**, 10 invoices each = **900 files**.
 - Noise catalogue grounded in the thesis audit: banner rows, abbreviations, pivot blocks, 5 distractor columns per template, per-language header variants.
 - Ground truth emitted with every file: column → field mapping and the true canonical record.
 - Each invoice also gets an **expected-cost reference**; ~15% carry an injected amount discrepancy (feeds the variance rule and routing labels).
@@ -38,9 +38,9 @@
 
 | Split | Carriers | Templates | Use |
 |---|---|---|---|
-| dev | 9 | 27 | alias dictionary, τ/m tuning, error analysis |
-| calibration | 3 | 9 | fit calibrators |
-| test (frozen) | 3 | 9 | all reported numbers; seed + hash in dataset card |
+| dev | 18 | 54 | alias dictionary, τ/m tuning, error analysis |
+| calibration | 6 | 18 | fit calibrators |
+| test (frozen) | 6 | 18 | all reported numbers; seed + hash in dataset card |
 
 An automated check asserts test carrier IDs ∉ dev ∪ calibration.
 
@@ -245,7 +245,7 @@ Exactly one path reaches `auto_approve`: contract built, no error-severity viola
 
 **Cut order on slip:** F6 → F20 → F10 → Langfuse (keep OpenTelemetry) → F19.
 
-**Week 1 cut already applied** (D010): 15 carriers instead of 30; LLM tie-break demoted to Could.
+**Week 1 cut already applied** (D010): LLM tie-break demoted to Could. Carrier count stays 30 (10 invoices each), since 3 test carriers made the carrier-clustered bootstrap degenerate.
 
 ### 4.2 Timeline
 

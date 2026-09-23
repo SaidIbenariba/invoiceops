@@ -67,6 +67,7 @@ One entry per decision: context, options considered, choice, and why.
 **Options:** (a) cut inside Week 1; (b) let Week 1 spill into Week 2 and drop a Track B model; (c) slide the sprint 3 days.
 **Choice:** (a) — generator reduced from 30 to 15 carriers (still EN/FR/ES); LLM tie-break stage demoted to Could.
 **Why:** H1 only needs embeddings + Hungarian vs. fuzzy; the ablation table still ships on 27 Sep and later weeks stay intact.
+**Amended 2026-09-23:** Carrier count back to 30 (18 dev / 6 calibration / 6 test), 10 invoices per template — still 900 files. With 3 test carriers the carrier-clustered bootstrap has only 10 distinct resamples, so its CIs are meaningless. Carrier count costs no build time; the cut was the wrong lever.
 
 ## D011 — Contract in its own package; split by carrier (2026-09-23)
 

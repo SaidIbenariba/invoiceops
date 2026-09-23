@@ -997,7 +997,7 @@ def expected_cost(net: Decimal, rng: random.Random) -> tuple[Decimal, bool]:
     return (net * (1 + delta)).quantize(Decimal("0.01")), False
 
 
-def generate(out: Path, seed: int, n_carriers: int = 15, per_template: int = 20) -> dict:
+def generate(out: Path, seed: int, n_carriers: int = 30, per_template: int = 10) -> dict:
     out = Path(out)
     rng = random.Random(seed)
     fake = Faker("en_US")
@@ -1048,8 +1048,8 @@ def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--seed", type=int, required=True)
-    p.add_argument("--n-carriers", type=int, default=15)
-    p.add_argument("--per-template", type=int, default=20)
+    p.add_argument("--n-carriers", type=int, default=30)
+    p.add_argument("--per-template", type=int, default=10)
     a = p.parse_args(argv)
     m = generate(a.out, a.seed, a.n_carriers, a.per_template)
     print(json.dumps({"files": len(m["entries"]), "splits": m["splits"], "test_hash": m["test_hash"]}, indent=1))
@@ -1067,7 +1067,7 @@ Expected: 5 passed
 - [ ] **Step 5: Generate the real dataset**
 
 Run: `uv run python -m invoiceops.synth.generate --out data/synthetic/v1 --seed 20260923`
-Expected: JSON with `"files": 900`, 9/3/3 carriers in `splits`, and a 64-hex `test_hash`. Copy the printed `splits` and `test_hash` for Step 6.
+Expected: JSON with `"files": 900`, 18/6/6 carriers in `splits`, and a 64-hex `test_hash`. Copy the printed `splits` and `test_hash` for Step 6.
 
 - [ ] **Step 6: Write the dataset card** — `docs/data/synthetic-v1-card.md`. Paste the values printed in Step 5 into the two marked lines (`Split` and `Test hash`); everything else is literal.
 
@@ -1076,8 +1076,8 @@ Expected: JSON with `"files": 900`, 9/3/3 carriers in `splits`, and a 64-hex `te
 
 **Purpose:** Track A (column mapping) dev, calibration, and frozen test data. Fully synthetic; no private data (scoping §8).
 **Regenerate:** `uv run python -m invoiceops.synth.generate --out data/synthetic/v1 --seed 20260923`
-**Size:** 15 carriers × 3 languages (EN/FR/ES) × 20 invoices = 900 XLSX files.
-**Split (by carrier, D011):** dev 9 / calibration 3 / test 3 — carriers: <paste "splits" from the generator output>
+**Size:** 30 carriers × 3 languages (EN/FR/ES) × 10 invoices = 900 XLSX files.
+**Split (by carrier, D011):** dev 18 / calibration 6 / test 6 — carriers: <paste "splits" from the generator output>
 **Test hash (SHA-256 of test manifest entries):** <paste "test_hash" from the generator output>
 
 ## Ground truth per file (`manifest.json`)
