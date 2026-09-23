@@ -40,6 +40,7 @@ One entry per decision: context, options considered, choice, and why.
 **Context:** §3 scopes Track B to pretrained KILE (header) + LIR (line-item) models; training/fine-tuning from scratch is explicitly out of scope.
 **Choice:** Hugging Face `transformers`, pretrained LayoutLMv3/Donut checkpoints, MPS inference backend (Apple Silicon).
 **Why:** Matches the local-first, no-paid-GPU constraint (§8) and the out-of-scope line on training document models from scratch. MPS avoids any cloud GPU cost for inference.
+**Amended 2026-09-23:** Model set is now Donut fine-tuned on CORD (specialist), Qwen2.5-VL via Ollama (zero-shot VLM), and Docling text → small LLM (pipeline). LayoutLMv3 is dropped: the base checkpoint has no KIE head, so it would need fine-tuning, which §3 puts out of scope. See `docs/design/system-design.md`.
 
 ## D007 — Calibration + experiment tracking: scikit-learn + MLflow (local) (2026-09-19)
 
@@ -58,3 +59,17 @@ One entry per decision: context, options considered, choice, and why.
 **Context:** Needs: eval-result history, a CI gate blocking regressions (D002), a deploy target for the REST API (§3), and a dependency manager (`pyproject.toml` already declares `uv_build` as the build backend).
 **Choice:** SQLite for eval-run/metrics history + filesystem for datasets (`data/public`, `data/synthetic`, already scaffolded); GitHub Actions (test job → eval-gate job → build/deploy job); Docker + Fly.io (or Railway); `uv` for dependency management.
 **Why:** All zero/near-zero-cost choices matching the local-first, no-paid-GPU, solo-budget constraints (§8). Postgres, Kubernetes, or a hosted CI runner would be over-provisioned for this scale.
+**Amended 2026-09-23:** Deploy target is Azure Container Apps (Azure for Students), fallback Hugging Face Spaces — replaces Fly.io/Railway. A recognised cloud is worth more for the portfolio goal. SQLite confirmed over Postgres: same SQL practice, no service container in CI.
+
+## D010 — Week 1 scope cut after a 2-day slip (2026-09-23)
+
+**Context:** Week 1 started Mon 21 Sep; on Wed 23 Sep the generator was not built. Sprint rule: cut scope, not days.
+**Options:** (a) cut inside Week 1; (b) let Week 1 spill into Week 2 and drop a Track B model; (c) slide the sprint 3 days.
+**Choice:** (a) — generator reduced from 30 to 15 carriers (still EN/FR/ES); LLM tie-break stage demoted to Could.
+**Why:** H1 only needs embeddings + Hungarian vs. fuzzy; the ablation table still ships on 27 Sep and later weeks stay intact.
+
+## D011 — Contract in its own package; split by carrier (2026-09-23)
+
+**Context:** Both tracks produce the canonical invoice and validation, routing, and the API consume it. The generator renders each carrier in 3 languages.
+**Choice:** (1) `src/invoiceops/contract/` holds `Invoice`, `Line`, `Refusal`, `build_contract`; it replaces `validation/output_contractor.py`. (2) Refines D003: split by **carrier**, not template, 9 dev / 3 calibration / 3 test.
+**Why:** (1) Neither track depends on the other or on validation. (2) FR and EN templates of one carrier share structure; splitting by template would leak it into test.
