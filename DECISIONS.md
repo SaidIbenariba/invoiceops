@@ -72,5 +72,5 @@ One entry per decision: context, options considered, choice, and why.
 ## D011 — Contract in its own package; split by carrier (2026-09-23)
 
 **Context:** Both tracks produce the canonical invoice and validation, routing, and the API consume it. The generator renders each carrier in 3 languages.
-**Choice:** (1) `src/invoiceops/contract/` holds `Invoice`, `Line`, `Refusal`, `build_contract`; it replaces `validation/output_contractor.py`. (2) Refines D003: split by **carrier**, not template, 9 dev / 3 calibration / 3 test.
+**Choice:** (1) `src/invoiceops/contract/` holds `Invoice`, `Line`, `Refusal`, `build_contract`; it replaces `validation/output_contractor.py`. (2) Refines D003: split by **carrier**, not template, 60/20/20 (18 dev / 6 calibration / 6 test at 30 carriers).
 **Why:** (1) Neither track depends on the other or on validation. (2) FR and EN templates of one carrier share structure; splitting by template would leak it into test.
