@@ -35,8 +35,8 @@ flowchart TD
 
     subgraph TB["Track B — minority path"]
         direction TB
-        TB_START["PDF / image invoice"] --> TB_KILE["Header fields (KILE)<br/>HF transformers, MPS<br/>LayoutLMv3 / Donut"]
-        TB_START --> TB_LIR["Line items (LIR)<br/>HF transformers, MPS<br/>LayoutLMv3 / Donut"]
+        TB_START["PDF / image invoice"] --> TB_KILE["Header fields (KILE)<br/>Donut-CORD · Qwen2.5-VL (Ollama)<br/>· Docling→LLM"]
+        TB_START --> TB_LIR["Line items (LIR)<br/>Donut-CORD · Qwen2.5-VL (Ollama)<br/>· Docling→LLM"]
         TB_BASE["Baseline<br/>B0: OCR text + regex rules"]
         TB_KILE -.compared against.-> TB_BASE
         TB_LIR -.compared against.-> TB_BASE

@@ -1,6 +1,6 @@
 # System Architecture
 
-Module-level component diagram. Maps directly to `src/invoiceops`'s 5 packages (`api`, `extraction`, `mapping`, `routing`, `validation`) — all currently empty skeletons (week 0), so this shows target responsibilities and call direction, not internals.
+Module-level component diagram. Maps to `src/invoiceops`'s packages (`api`, `extraction`, `mapping`, `routing`, `validation`, plus `contract` per D011 — see [system design §3](../design/system-design.md#3-components-and-interfaces) for interfaces) — all currently empty skeletons (week 0), so this shows target responsibilities and call direction, not internals.
 
 ```mermaid
 flowchart TD
@@ -11,7 +11,7 @@ flowchart TD
     subgraph PROC["Processing layer"]
         direction TB
         MAP["mapping — Track A<br/>sentence-transformers embeddings +<br/>Hungarian algorithm<br/>(scipy.optimize.linear_sum_assignment)"]
-        EXTRACT["extraction — Track B<br/>HF transformers, MPS<br/>LayoutLMv3 / Donut<br/>KILE header fields + LIR line items"]
+        EXTRACT["extraction — Track B<br/>Donut-CORD · Qwen2.5-VL (Ollama)<br/>· Docling→LLM<br/>KILE header fields + LIR line items"]
         VALID["validation<br/>Pydantic v2 validators<br/>net+tax=gross, line sums,<br/>currency sanity, variance&gt;5%"]
         ROUTE["routing<br/>scikit-learn calibration<br/>(Platt / isotonic) to<br/>auto_approve / human_review / reject"]
     end

@@ -9,7 +9,7 @@ Diagrams documenting invoiceops's system design. Status: week 0 — these descri
 - [Deployment Topology](deployment-topology.md) — local dev → GitHub Actions CI/CD → cloud runtime, and where tracing plugs in.
 - [ML / Data Lifecycle](ml-lifecycle.md) — data → fit/calibrate → eval gate → registry → serve → error analysis loop.
 
-Stack decisions behind every diagram are logged in `DECISIONS.md` (D004-D009).
+Stack decisions behind every diagram are logged in `DECISIONS.md` (D004-D011; D006/D009 amended 2026-09-23).
 
 ## Conventions
 

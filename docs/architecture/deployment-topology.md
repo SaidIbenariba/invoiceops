@@ -26,7 +26,7 @@ flowchart TD
 
     DEV -->|git push| REPO
 
-    subgraph CLOUD["Cloud — Fly.io / Railway"]
+    subgraph CLOUD["Cloud — Azure Container Apps<br/>(fallback: HF Spaces)"]
         direction TB
         APP["invoiceops API container<br/>FastAPI + Uvicorn"]
         DB["SQLite volume<br/>eval-run history"]
