@@ -21,7 +21,7 @@ def test_leakage_check_raises_on_shared_carrier():
 
 def test_manifest_counts_and_files(tiny_dataset):
     manifest = json.loads((tiny_dataset / "manifest.json").read_text())
-    assert len(manifest["entries"]) == 5 * 3 * 2
+    assert len(manifest["entries"]) == 10 * 3 * 2
     for e in manifest["entries"]:
         assert (tiny_dataset / e["path"]).exists()
         assert e["record"]["supplier_id"] == e["carrier_id"]
