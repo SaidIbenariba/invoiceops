@@ -91,6 +91,9 @@ class EmbedStage:
         return np.clip(S, 0.0, 1.0)
 
 
+KNOWN_CURRENCIES = frozenset({"EUR", "USD", "GBP", "CHF", "JPY", "CAD", "AUD", "MAD"})
+
+
 def infer_kind(values: list[object]) -> str:
     vals = [v for v in values if v is not None and not (isinstance(v, str) and not v.strip())]
     if not vals:
@@ -100,14 +103,14 @@ def infer_kind(values: list[object]) -> str:
     if all(isinstance(v, (int, float, Decimal)) and not isinstance(v, bool) for v in vals):
         return "number"
     strs = [str(v).strip() for v in vals]
-    if all(re.fullmatch(r"[A-Z]{3}", s) for s in strs):
+    if all(re.fullmatch(r"[A-Z]{3}", s) and s in KNOWN_CURRENCIES for s in strs):
         return "currency"
     if all(re.search(r"\d", s) and " " not in s for s in strs):
         return "id"
     return "text"
 
 
-PARTIAL_COMPAT = {("id", "text"): 0.5, ("text", "id"): 0.5}
+PARTIAL_COMPAT = {("id", "text"): 0.5, ("text", "id"): 0.5, ("number", "id"): 0.5}
 MISMATCH = 0.1
 
 

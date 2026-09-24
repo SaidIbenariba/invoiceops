@@ -70,3 +70,17 @@ def test_type_matrix_rewards_matching_kinds():
     M = type_matrix(t, ["amount", "currency"])
     assert M[0, 0] == 1.0 and M[1, 1] == 1.0
     assert M[0, 1] < 0.5 and M[1, 0] < 0.5
+
+
+def test_infer_kind_currency_requires_known_code_not_just_three_letters():
+    assert infer_kind(["SMS", "SMS", "SMS"]) == "text"
+    assert infer_kind(["EUR", "USD"]) == "currency"
+
+
+def test_type_matrix_number_id_partial_compat():
+    t = Table(0, ["a"], [["00123"], ["00456"]])
+    M = type_matrix(t, ["invoice_no"])
+    assert infer_kind(t.column(0)) == "id"
+    t2 = Table(0, ["a"], [[123.0], [456.0]])
+    M2 = type_matrix(t2, ["invoice_no"])
+    assert M2[0, 0] == 0.5
