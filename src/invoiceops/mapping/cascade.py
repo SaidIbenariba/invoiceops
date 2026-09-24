@@ -148,6 +148,8 @@ def to_draft(table: Table, result: MappingResult, supplier_id: str) -> dict:
         "invoice_date": _date(get(first, "invoice_date")) if first else None,
         "currency": _text(get(first, "currency")) if first else None,
         "net": net,
+        # tax/totals extraction is week 3 (F12); until then gross == net always,
+        # so build_contract's tax_missing_and_gross_ne_net refusal never fires from this draft.
         "tax": None,
         "gross": net,
         "lines": lines,
