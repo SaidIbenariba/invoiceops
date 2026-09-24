@@ -1,7 +1,7 @@
 """Ground-truth invoice records and their rendering as a carrier XLSX file."""
 
 import random
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -17,8 +17,10 @@ CENT = Decimal("0.01")
 
 def make_invoice(spec: CarrierSpec, lang: str, rng: random.Random, fake: Faker, seq: int) -> dict:
     lines = []
-    for _ in range(rng.randint(3, 12)):
-        charge = rng.choice(sorted(CHARGE_LABELS))
+    pool = sorted(CHARGE_LABELS)
+    n = rng.randint(3, 12)
+    charges = rng.sample(pool, 2) + [rng.choice(pool) for _ in range(n - 2)]
+    for charge in charges:
         if charge == "recurring":
             quantity, unit_price = Decimal(1), Decimal(rng.randint(100, 5000))
         else:
@@ -70,6 +72,7 @@ def _cell(key: str, line: dict, record: dict, spec: CarrierSpec, lang: str, rng:
 def write_xlsx(path: Path, spec: CarrierSpec, lang: str, record: dict, rng: random.Random, fake: Faker) -> dict:
     """Write one invoice. Returns ground truth: header row index, header texts, field per column."""
     wb = Workbook()
+    wb.properties.created = wb.properties.modified = datetime(2026, 1, 1)
     ws = wb.active
     period = record["invoice_date"].strftime("%Y-%m")
     for i in range(spec.n_banner_rows):
