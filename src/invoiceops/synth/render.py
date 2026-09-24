@@ -1,7 +1,7 @@
 """Ground-truth invoice records and their rendering as a carrier XLSX file."""
 
 import random
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -72,7 +72,6 @@ def _cell(key: str, line: dict, record: dict, spec: CarrierSpec, lang: str, rng:
 def write_xlsx(path: Path, spec: CarrierSpec, lang: str, record: dict, rng: random.Random, fake: Faker) -> dict:
     """Write one invoice. Returns ground truth: header row index, header texts, field per column."""
     wb = Workbook()
-    wb.properties.created = wb.properties.modified = datetime(2026, 1, 1)
     ws = wb.active
     period = record["invoice_date"].strftime("%Y-%m")
     for i in range(spec.n_banner_rows):

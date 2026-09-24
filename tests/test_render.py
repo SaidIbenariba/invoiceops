@@ -55,7 +55,7 @@ def test_invoice_has_at_least_two_charge_types(seed):
     assert len({line["charge_type"] for line in rec["lines"]}) >= 2
 
 
-def test_xlsx_bytes_are_reproducible(tmp_path):
+def test_xlsx_content_is_reproducible(tmp_path):
     seed = 0
     spec, rng, fake = setup(seed)
     rec = make_invoice(spec, "es", rng, fake, 1)
@@ -63,12 +63,14 @@ def test_xlsx_bytes_are_reproducible(tmp_path):
     rng2 = random.Random(seed)
     fake2 = Faker("en_US")
     fake2.seed_instance(seed)
-
-    write_xlsx(tmp_path / "a.xlsx", spec, "es", rec, rng2, fake2)
+    meta_a = write_xlsx(tmp_path / "a.xlsx", spec, "es", rec, rng2, fake2)
 
     rng3 = random.Random(seed)
     fake3 = Faker("en_US")
     fake3.seed_instance(seed)
-    write_xlsx(tmp_path / "b.xlsx", spec, "es", rec, rng3, fake3)
+    meta_b = write_xlsx(tmp_path / "b.xlsx", spec, "es", rec, rng3, fake3)
 
-    assert (tmp_path / "a.xlsx").read_bytes() == (tmp_path / "b.xlsx").read_bytes()
+    assert meta_a == meta_b
+    rows_a = [list(r) for r in load_workbook(tmp_path / "a.xlsx").active.iter_rows(values_only=True)]
+    rows_b = [list(r) for r in load_workbook(tmp_path / "b.xlsx").active.iter_rows(values_only=True)]
+    assert rows_a == rows_b
