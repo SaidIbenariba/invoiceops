@@ -13,7 +13,7 @@ from invoiceops.synth.carriers import (
     headers_for,
     make_carriers,
 )
-from invoiceops.synth.vocab import CURRENCIES, HEADERS
+from invoiceops.synth.vocab import CURRENCIES, HEADERS, LANGUAGES
 
 
 def carriers(seed, n=6, held_out=frozenset()):
@@ -78,31 +78,34 @@ def test_apply_noise_variants():
 
 
 def test_held_out_carriers_see_every_seen_variant():
+    fake = Faker("en_US")
+    fake.seed_instance(0)
     specs = make_carriers(
         200,
         random.Random(42),
-        Faker("en_US"),
+        fake,
         held_out=frozenset(f"C{k:02d}" for k in range(1, 201)),
     )
-    for field in HEADERS:
-        seen = HEADERS[field]["en"][:-1]
-        produced = {_choose_variant(spec, field, "en") for spec in specs if field in spec.fields}
-        for variant in seen:
-            assert variant in produced, (field, variant)
+    for lang in LANGUAGES:
+        for field in HEADERS:
+            seen = HEADERS[field][lang][:-1]
+            produced = {_choose_variant(spec, field, lang) for spec in specs if field in spec.fields}
+            for variant in seen:
+                assert variant in produced, (lang, field, variant)
 
 
 def test_noise_never_leaks_held_out():
+    non_last_norms = set()
+    last_norms = set()
     for noise in NOISES:
         for currency in CURRENCIES:
-            non_last_norms = set()
-            last_norms = set()
             for field, langs in HEADERS.items():
                 for lang, variants in langs.items():
                     for variant in variants[:-1]:
                         non_last_norms.add(normalize(apply_noise(variant, noise, field, currency)))
                     last_norms.add(normalize(apply_noise(variants[-1], noise, field, currency)))
-            overlap = non_last_norms & last_norms
-            assert not overlap, (noise, currency, overlap)
+    overlap = non_last_norms & last_norms
+    assert not overlap, overlap
 
 
 def test_make_carriers_rejects_unknown_held_out_ids():
