@@ -7,7 +7,7 @@ from invoiceops.mapping import CascadeConfig, Mapper, Table, build_aliases, load
 from invoiceops.mapping.fields import TABLE_FIELDS
 from tests.helpers import fake_encoder
 
-HEADERS = ["Invoice No", "Date facture", "Currency", "Service", "Amount", "Destination"]
+HEADERS = ["Invoice No", "Date facture", "Currency", "Service", "Total Due", "Destination"]
 TABLE = Table(
     0,
     HEADERS,
@@ -37,7 +37,7 @@ def test_alias_mapping_builds_valid_invoice():
 
 
 def test_unmapped_required_field_leads_to_refusal():
-    m = mapper(zip(HEADERS[:4], TRUTH[:4]))  # no alias for Amount
+    m = mapper(zip(HEADERS[:4], TRUTH[:4]))  # no alias for Total Due
     result = m.decide(TABLE, m.score(TABLE, ALIAS_ONLY), ALIAS_ONLY)
     assert "amount" in result.unmapped_required
     assert isinstance(build_contract(to_draft(TABLE, result, "C01")), Refusal)
