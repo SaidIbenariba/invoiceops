@@ -1,5 +1,7 @@
 """Ground-truth invoice records and their rendering as a carrier XLSX file."""
 
+import hashlib
+import json
 import random
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
@@ -74,11 +76,16 @@ def write_xlsx(path: Path, spec: CarrierSpec, lang: str, record: dict, rng: rand
     wb = Workbook()
     ws = wb.active
     period = record["invoice_date"].strftime("%Y-%m")
+    rows = []
     for i in range(spec.n_banner_rows):
-        ws.append([BANNERS[lang][i].format(carrier=spec.name, period=period)] if i < len(BANNERS[lang]) else [])
+        row = [BANNERS[lang][i].format(carrier=spec.name, period=period)] if i < len(BANNERS[lang]) else []
+        rows.append(row)
     headers, truth = headers_for(spec, lang)
-    ws.append(headers)
+    rows.append(headers)
     for line in record["lines"]:
-        ws.append([_cell(key, line, record, spec, lang, rng, fake) for key in spec.column_order])
+        rows.append([_cell(key, line, record, spec, lang, rng, fake) for key in spec.column_order])
+    for row in rows:
+        ws.append(row)
     wb.save(path)
-    return {"header_row": spec.n_banner_rows, "headers": headers, "mapping": truth}
+    content_sha256 = hashlib.sha256(json.dumps(rows, default=str, ensure_ascii=False).encode()).hexdigest()
+    return {"header_row": spec.n_banner_rows, "headers": headers, "mapping": truth, "content_sha256": content_sha256}

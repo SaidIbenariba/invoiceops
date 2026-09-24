@@ -55,6 +55,31 @@ def test_invoice_has_at_least_two_charge_types(seed):
     assert len({line["charge_type"] for line in rec["lines"]}) >= 2
 
 
+def test_content_sha256_reproducible_and_sensitive_to_inputs(tmp_path):
+    seed = 0
+    spec, rng, fake = setup(seed)
+    rec = make_invoice(spec, "es", rng, fake, 1)
+
+    rng_a = random.Random(seed)
+    fake_a = Faker("en_US")
+    fake_a.seed_instance(seed)
+    meta_a = write_xlsx(tmp_path / "a.xlsx", spec, "es", rec, rng_a, fake_a)
+
+    rng_b = random.Random(seed)
+    fake_b = Faker("en_US")
+    fake_b.seed_instance(seed)
+    meta_b = write_xlsx(tmp_path / "b.xlsx", spec, "es", rec, rng_b, fake_b)
+
+    assert meta_a["content_sha256"] == meta_b["content_sha256"]
+
+    rng_c = random.Random(seed + 1)
+    fake_c = Faker("en_US")
+    fake_c.seed_instance(seed + 1)
+    meta_c = write_xlsx(tmp_path / "c.xlsx", spec, "es", rec, rng_c, fake_c)
+
+    assert meta_c["content_sha256"] != meta_a["content_sha256"]
+
+
 def test_xlsx_content_is_reproducible(tmp_path):
     seed = 0
     spec, rng, fake = setup(seed)

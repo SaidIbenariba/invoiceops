@@ -24,6 +24,8 @@ DISCREPANCY_RATE = 0.15
 
 def split_carriers(ids: list[str], rng: random.Random) -> dict[str, str]:
     """60/20/20 dev/calibration/test by carrier (D011)."""
+    if len(ids) < 5:
+        raise ValueError(f"need at least 5 carriers to split 60/20/20, got {len(ids)}")
     ids = sorted(ids)
     rng.shuffle(ids)
     n_test = max(1, round(len(ids) * 0.2))
@@ -53,8 +55,21 @@ def expected_cost(net: Decimal, rng: random.Random) -> tuple[Decimal, bool]:
     return (net * (1 + delta)).quantize(Decimal("0.01")), False
 
 
-def generate(out: Path, seed: int, n_carriers: int = 30, per_template: int = 10) -> dict:
+def generate(out: Path, seed: int, n_carriers: int = 30, per_template: int = 10, force: bool = False) -> dict:
     out = Path(out)
+    existing_xlsx = list(out.rglob("*.xlsx")) if out.exists() else []
+    existing_manifest = out / "manifest.json"
+    if existing_xlsx or existing_manifest.exists():
+        if not force:
+            raise FileExistsError(
+                f"{out} is not empty (found {len(existing_xlsx)} .xlsx file(s) and/or manifest.json); "
+                "pass force=True to regenerate"
+            )
+        for f in existing_xlsx:
+            f.unlink()
+        if existing_manifest.exists():
+            existing_manifest.unlink()
+
     rng = random.Random(seed)
     fake = Faker("en_US")
     fake.seed_instance(seed)
@@ -74,7 +89,7 @@ def generate(out: Path, seed: int, n_carriers: int = 30, per_template: int = 10)
                 expected_net, discrepancy = expected_cost(record["net"], rng)
                 entries.append(
                     {
-                        "path": str(rel),
+                        "path": rel.as_posix(),
                         "carrier_id": spec.carrier_id,
                         "language": lang,
                         "template_id": f"{spec.carrier_id}-{lang}",
@@ -106,8 +121,9 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--seed", type=int, required=True)
     p.add_argument("--n-carriers", type=int, default=30)
     p.add_argument("--per-template", type=int, default=10)
+    p.add_argument("--force", action="store_true", help="overwrite an existing dataset in --out")
     a = p.parse_args(argv)
-    m = generate(a.out, a.seed, a.n_carriers, a.per_template)
+    m = generate(a.out, a.seed, a.n_carriers, a.per_template, force=a.force)
     print(json.dumps({"files": len(m["entries"]), "splits": m["splits"], "test_hash": m["test_hash"]}, indent=1))
 
 
