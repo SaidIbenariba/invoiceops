@@ -75,3 +75,22 @@ def test_unknown_charge_type_refuses():
     assert isinstance(r, Refusal)
     assert r.reason == "invalid"
     assert "lines.0.charge_type" in r.missing
+
+
+def test_non_numeric_gross_refuses_invalid():
+    r = build_contract(valid_draft(tax=None, gross="12O,00"))
+    assert isinstance(r, Refusal)
+    assert r.reason == "invalid"
+    assert "gross" in r.missing
+
+
+def test_non_dict_line_refuses():
+    r = build_contract(valid_draft(lines=[None]))
+    assert isinstance(r, Refusal)
+    assert r.reason == "missing_required"
+    assert r.missing == ["lines[0]"]
+
+
+def test_string_lines_refuses():
+    r = build_contract(valid_draft(lines="abc"))
+    assert isinstance(r, Refusal)
