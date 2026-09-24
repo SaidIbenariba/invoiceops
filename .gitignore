@@ -25,3 +25,6 @@ mlruns/
 
 # Local caches
 .npm/
+
+# Eval history (regenerable)
+reports/*.sqlite
