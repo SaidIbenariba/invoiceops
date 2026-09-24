@@ -34,6 +34,10 @@ class CarrierSpec:
 
 
 def make_carriers(n: int, rng: random.Random, fake: Faker, held_out: frozenset[str] = frozenset()) -> list[CarrierSpec]:
+    valid_ids = {f"C{k:02d}" for k in range(1, n + 1)}
+    unknown = held_out - valid_ids
+    if unknown:
+        raise ValueError(f"held_out contains unknown carrier ids: {sorted(unknown)}")
     specs = []
     for k in range(1, n + 1):
         carrier_id = f"C{k:02d}"
@@ -68,7 +72,7 @@ def apply_noise(header: str, noise: str, field: str | None, currency: str) -> st
     if noise == "currency_suffix" and field in ("amount", "unit_price"):
         return f"{header} ({currency})"
     if noise == "abbrev":
-        return " ".join(w[:4] + "." if len(w) > 5 else w for w in header.split())
+        return " ".join(w[:5] + "." if len(w) > 6 else w for w in header.split())
     return header
 
 
@@ -78,7 +82,7 @@ def _choose_variant(spec: CarrierSpec, field: str, lang: str) -> str:
     if spec.held_out and v % 2 == 0:
         return options[-1]
     seen = options[:-1]
-    return seen[v % len(seen)]
+    return seen[(v // 2) % len(seen)]
 
 
 def headers_for(spec: CarrierSpec, lang: str) -> tuple[list[str], list[str | None]]:

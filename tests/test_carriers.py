@@ -1,10 +1,19 @@
 import random
 
+import pytest
 from faker import Faker
 
 from invoiceops.mapping.fields import REQUIRED_TABLE_FIELDS
-from invoiceops.synth.carriers import N_DISTRACTORS, apply_noise, headers_for, make_carriers
-from invoiceops.synth.vocab import HEADERS
+from invoiceops.mapping.text import normalize
+from invoiceops.synth.carriers import (
+    N_DISTRACTORS,
+    NOISES,
+    _choose_variant,
+    apply_noise,
+    headers_for,
+    make_carriers,
+)
+from invoiceops.synth.vocab import CURRENCIES, HEADERS
 
 
 def carriers(seed, n=6, held_out=frozenset()):
@@ -65,4 +74,37 @@ def test_apply_noise_variants():
     assert apply_noise("Unit Price", "snake", "unit_price", "EUR") == "unit_price"
     assert apply_noise("Amount", "currency_suffix", "amount", "GBP") == "Amount (GBP)"
     assert apply_noise("Destination", "currency_suffix", None, "GBP") == "Destination"
-    assert apply_noise("Account Manager", "abbrev", None, "EUR") == "Acco. Mana."
+    assert apply_noise("Account Manager", "abbrev", None, "EUR") == "Accou. Manag."
+
+
+def test_held_out_carriers_see_every_seen_variant():
+    specs = make_carriers(
+        200,
+        random.Random(42),
+        Faker("en_US"),
+        held_out=frozenset(f"C{k:02d}" for k in range(1, 201)),
+    )
+    for field in HEADERS:
+        seen = HEADERS[field]["en"][:-1]
+        produced = {_choose_variant(spec, field, "en") for spec in specs if field in spec.fields}
+        for variant in seen:
+            assert variant in produced, (field, variant)
+
+
+def test_noise_never_leaks_held_out():
+    for noise in NOISES:
+        for currency in CURRENCIES:
+            non_last_norms = set()
+            last_norms = set()
+            for field, langs in HEADERS.items():
+                for lang, variants in langs.items():
+                    for variant in variants[:-1]:
+                        non_last_norms.add(normalize(apply_noise(variant, noise, field, currency)))
+                    last_norms.add(normalize(apply_noise(variants[-1], noise, field, currency)))
+            overlap = non_last_norms & last_norms
+            assert not overlap, (noise, currency, overlap)
+
+
+def test_make_carriers_rejects_unknown_held_out_ids():
+    with pytest.raises(ValueError):
+        make_carriers(3, random.Random(1), Faker("en_US"), held_out=frozenset({"C99"}))
