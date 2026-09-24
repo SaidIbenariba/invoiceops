@@ -26,6 +26,12 @@ def test_alias_stage_exact_after_normalisation():
 def test_fuzzy_stage_catches_suffix_and_rejects_unrelated():
     S = FuzzyStage(aliases(), FIELDS).score(table())
     assert S.shape == (3, 2)
-    assert S[1, 1] == 1.0
+    assert S[1, 1] >= 0.75
     assert S[2].max() < 0.7
     assert np.all((S >= 0) & (S <= 1))
+
+
+def test_fuzzy_does_not_saturate_on_token_subset():
+    a = build_aliases([("Amount", "amount")], ["amount"])
+    S = FuzzyStage(a, ["amount"]).score(Table(0, ["Amount Prev. Period"], [[1.0]]))
+    assert S[0, 0] < 0.9

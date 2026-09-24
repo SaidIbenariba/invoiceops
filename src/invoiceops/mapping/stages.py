@@ -46,5 +46,7 @@ class FuzzyStage:
         for i, h in enumerate(table.headers):
             n = normalize(h)
             for j, f in enumerate(self.fields):
-                S[i, j] = max((fuzz.token_set_ratio(n, a) for a in self.aliases[f]), default=0.0) / 100
+                # token_set_ratio returns 100 whenever one token set is a subset of the other,
+                # which would let distractors like "Amount Prev. Period" saturate to 1.0 for "amount".
+                S[i, j] = max((fuzz.token_sort_ratio(n, a) for a in self.aliases[f]), default=0.0) / 100
         return S
