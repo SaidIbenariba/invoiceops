@@ -29,7 +29,7 @@ CONFIGS = (
     CascadeConfig("S4 +value types", ("alias", "fuzzy", "embed"), use_types=True, assignment="hungarian"),
 )
 BASELINE, CANDIDATE = "B1 +fuzzy", "S3 +hungarian"
-TAUS = tuple(round(0.30 + 0.05 * k, 2) for k in range(14))  # 0.30 … 0.95
+TAUS = tuple(round(0.10 + 0.05 * k, 2) for k in range(18))  # 0.10 … 0.95
 MARGINS = (0.0, 0.02, 0.05, 0.1, 0.15, 0.2)
 MAX_FALSE_MAP = 0.05  # scoping §4
 H1_MIN_GAIN = 0.10  # scoping §6
@@ -83,14 +83,26 @@ def total(counts: dict[str, np.ndarray]) -> np.ndarray:
 
 
 def tune(mapper: Mapper, items: list[Item], config: CascadeConfig) -> CascadeConfig:
-    """Best dev accuracy with 0 silent errors and false-map <= 5%; if infeasible, fewest silent errors."""
+    """Best dev accuracy with 0 silent errors and false-map <= 5%; if infeasible, fewest silent errors.
+
+    Refusal rate is a secondary criterion (after accuracy, before false-map) among feasible
+    configs: STP (straight-through processing) rate is a business metric (scoping.md §4), so
+    a config that refuses nearly everything is useless even with 0 silent errors and 0 false
+    maps — without this term, ties on (feasible, accuracy) left the tuner indifferent between
+    a config that maps everything and one that maps almost nothing.
+    """
     best_key, best = None, config
     for tau in TAUS:
         for m in MARGINS:
             cfg = replace(config, tau=tau, margin=m)
             c = total(run_config(mapper, items, cfg))
             feasible = c[SILENT] == 0 and false_map_rate(c) <= MAX_FALSE_MAP
-            key = (feasible, accuracy(c) if feasible else -c[SILENT], -false_map_rate(c))
+            key = (
+                feasible,
+                accuracy(c) if feasible else -c[SILENT],
+                -refusal_rate(c) if feasible else 0,
+                -false_map_rate(c),
+            )
             if best_key is None or key > best_key:
                 best_key, best = key, cfg
     return best
