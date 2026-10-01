@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+.env.*
+
+# Data: never commit raw or downloaded data. Synthetic data is regenerated from a seed.
+data/public/*
+data/synthetic/*
+!data/public/.gitkeep
+!data/synthetic/.gitkeep
+
+# Large artifacts
+*.pt
+*.safetensors
+*.onnx
+mlruns/
+
+.DS_Store
+
+# Local caches
+.npm/
+
+# Eval history (regenerable)
+reports/*.sqlite

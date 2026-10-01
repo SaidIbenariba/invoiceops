@@ -1,0 +1,35 @@
+[project]
+name = "invoiceops"
+version = "0.1.0"
+description = "Open invoice validation: semantic column mapping, document extraction benchmarks, calibrated human-in-the-loop routing."
+readme = "README.md"
+authors = [
+    { name = "Said Ibenariba" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "faker>=40.39.0",
+    "numpy>=2.5.3",
+    "openpyxl>=3.1.5",
+    "pydantic>=2.13.5",
+    "rapidfuzz>=3.14.6",
+    "scipy>=1.18.1",
+    "sentence-transformers>=6.1.0",
+]
+
+[project.scripts]
+invoiceops = "invoiceops:main"
+
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: downloads a model or runs a long job"]
+addopts = "-m 'not slow'"
